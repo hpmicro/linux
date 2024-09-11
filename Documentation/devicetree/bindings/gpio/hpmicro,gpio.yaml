@@ -1,0 +1,103 @@
+# SPDX-License-Identifier: (GPL-2.0 OR BSD-2-Clause)
+%YAML 1.2
+---
+
+title: HPMicro GPIO controller
+
+properties:
+  compatible:
+    items:
+      - enum:
+          - hpmicro,gpio
+
+  reg:
+    description: The GPIO Controller's base address
+    maxItems: 1
+
+  n-ports:
+    description:
+      The number of GPIO Ports available on the controller.
+    minimum: 1
+    maximum: 9
+    default: 6
+
+required:
+  - compatible
+  - reg
+  - n-ports
+
+patternProperties:
+  "(^gpio_port[a-z]$|^gpio_port[a-z]$)":
+    type: object
+    $ref: common.yaml#
+    unevaluatedProperties: false
+
+    properties:
+      compatible:
+        items:
+          - enum:
+              - hpmicro,gpio-port
+      reg:
+        description:
+          The index of the port. 0 for PA and 1 for PB and so on.
+        maxItems: 1
+
+      ngpios:
+        description:
+          The pin number of the port.
+        minimum: 1
+        maximum: 32
+        default: 32
+
+      gpio-ranges:
+        minimum: 0
+        maximum: 288
+
+      interrupts:
+        maxItems: 1
+
+      interrupt-controller: true
+
+      gpio-controller: true
+
+      "#interrupt-cells":
+        const: 2
+
+      "#gpio-cells":
+        const: 2
+
+    required:
+      - compatible
+      - reg
+      - ngpios
+      - gpio-ranges
+      - interrupts
+      - interrupt-controller
+      - gpio-controller
+      - "#interrupt-cells"
+      - "#gpio-cells"
+
+examples:
+  - |
+      #include <dt-bindings/gpio/gpio.h>
+      gpio0: gpio-controller@f00d0000 {
+        #address-cells = <1>;
+        #size-cells = <0>;
+        compatible = "hpmicro,gpio";
+        reg = <0xF00D0000 0x4000>;
+        n-ports = <6>;
+        status = "okay";
+        gpio_porta: gpio-porta@0 {
+          #gpio-cells = <2>;
+          #interrupt-cells = <2>;
+          compatible = "hpmicro,gpio-port";
+          reg = <0>;
+          interrupt-controller;
+          interrupts = <1>;
+          gpio-controller;
+          ngpios = <32>;
+          gpio-ranges = <&ioc 0 0 32>;
+        };
+      };
+
+...

@@ -625,6 +625,13 @@ config GPIO_SAMA5D2_PIOBU
 	  The difference from regular GPIOs is that they
 	  maintain their value during backup/self-refresh.
 
+config GPIO_HPMICRO
+	bool "HPMICRO GPIO Support"
+	depends on ARCH_HPMICRO
+	select GPIOLIB_IRQCHIP
+	help
+	  This enable GPIO support for hpmicro socs
+
 config GPIO_SIFIVE
 	tristate "SiFive GPIO support"
 	depends on OF_GPIO

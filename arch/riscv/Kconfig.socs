@@ -2,6 +2,7 @@ menu "SoC selection"
 
 config ARCH_HPMICRO
 	bool "HPMicro MCUs"
+	select GPIO_HPMICRO
 	help
 	  This enables support for HPMicro MCUs platforms.
 
