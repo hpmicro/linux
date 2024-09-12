@@ -1,0 +1,59 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+/* Copyright (c) 2020-2021 Microchip Technology Inc */
+
+/dts-v1/;
+
+#include "hpm6800.dtsi"
+
+
+/ {
+	gpio-leds {
+		compatible = "gpio-leds";
+		led0 {
+			gpios = <&gpio_portf 1 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+			pinctrl-0 = <&led0_pins>;
+			pinctrl-names = "default";
+		};
+
+		led1 {
+			gpios = <&gpio_portf 2 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "heartbeat";
+			pinctrl-0 = <&led1_pins>;
+			pinctrl-names = "default";
+		};
+	};
+	gpio_keys0:gpio-keys0 {
+		compatible = "gpio-keys-polled";
+		poll-interval = <50>;
+        autorepeat;
+		pinctrl-0 = <&key0_pins>;
+		pinctrl-names = "default";
+		event-a {
+			label = "Button A";
+			linux,code = <BTN_A>;
+			gpios = <&gpio_portf 7 GPIO_ACTIVE_LOW>; /* PF07 KEY2*/
+		};
+	};
+	gpio_keys1:gpio-keys1 {
+        compatible = "gpio-keys";
+        autorepeat;
+
+		pinctrl-0 = <&key1_pins>;
+		pinctrl-names = "default";
+        key-down {
+            label = "Button B";
+            linux,code = <BTN_B>;
+			gpios = <&gpio_portf 6 GPIO_ACTIVE_LOW>; /* PF06 KEY1 */
+            interrupts-extended = <&gpio_portf 6 IRQ_TYPE_EDGE_FALLING>;
+        };
+	};
+};
+
+&gpio_keys0 {
+	status = "okay";
+};
+
+&gpio_keys1 {
+	status = "okay";
+};

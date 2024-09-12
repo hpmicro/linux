@@ -1,0 +1,213 @@
+/dts-v1/;
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/leds/common.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/input/linux-event-codes.h>
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/pinctrl/pinctrl-hpmicro.h>
+/ {
+	#address-cells = <0x01>;
+	#size-cells = <0x01>;
+	compatible = "hpmicro,hpm6800";
+	model = "HPMicro HPM6800 Evaluate Kit";
+
+	aliases {
+		serial0 = &uart0;
+	};
+
+	chosen {
+		bootargs = "earlycon=sbi console=hvc0 ignore_loglevel rootwait root=/dev/mtdblock0";
+		stdout-path = "hvc0";
+	};
+
+	memory@40000000 {
+		device_type = "memory";
+		reg = <0x40000000 0x02000000>;
+	};
+
+	cpus {
+		#address-cells = <0x01>;
+		#size-cells = <0x00>;
+		timebase-frequency = <24000000>;
+
+		cpu@0 {
+			phandle = <0x01>;
+			device_type = "cpu";
+			reg = <0x00>;
+			status = "okay";
+			compatible = "riscv";
+			riscv,isa = "rv32imafdcp";
+			riscv,isa-base = "rv32i";
+			riscv,isa-extensions = "i", "m", "a", "f", "d", "c", "zicsr",
+					       "zifencei", "zihpm";
+			mmu-type = "riscv,none";
+
+			cpu0_intc: interrupt-controller {
+				#interrupt-cells = <0x01>;
+				interrupt-controller;
+				compatible = "riscv,cpu-intc";
+			};
+		};
+	};
+
+	soc {
+		#address-cells = <0x01>;
+		#size-cells = <0x01>;
+		compatible = "simple-bus";
+		ranges;
+		interrupt-parent = <&plic>;
+
+		clint: clint@2000000 {
+			compatible = "hpmicro,hpmicro-clint", "sifive,clint0";
+			reg = <0x2000000 0x10000>;
+			interrupts-extended = <&cpu0_intc 3>, <&cpu0_intc 7>;
+		};
+		rom@80400000 {
+			compatible = "mtd-rom";
+			reg = <0x80400000 0xC00000>;
+			bank-width = <1>;
+		};
+
+		uart0: uart0@f0040000 {
+			compatible = "hpmicro,hpmicro-uart";
+			reg = <0xf0040000 0x40>;
+			clock-frequency = <24000000>;
+			status = "okay";
+			interrupts = <27>;
+		};
+		uart3: uart3@f004c000 {
+			compatible = "hpmicro,hpmicro-uart";
+			reg = <0xf004c000 0x40>;
+			clock-frequency = <24000000>;
+			interrupts = <30>;
+			pinctrl-0 = <&uart3_pins>;
+			pinctrl-names = "default";
+		};
+		plic: interrupt-controller@e4000000 {
+			compatible = "hpmicro,hpmicro-plic", "sifive,plic-1.0.0";
+			reg = <0xe4000000 0x4000000>;
+			#address-cells = <0>;
+			#interrupt-cells = <1>;
+			interrupt-controller;
+			interrupts-extended = <&cpu0_intc 11>, <&cpu0_intc 9>;
+			riscv,ndev = <76>;
+		};
+		ioc: pinctrl@f4040000 {
+			compatible = "hpmicro,ioc";
+			reg = <0xF4040000 0x80000>;
+			reg-names = "ioc";
+			uart3_pins: uart3-0 {
+				tx_pins {
+					pinmux = <ALTSELECT(142, 2)>;
+				};
+				rx_pins {
+					pinmux = <ALTSELECT(143, 2)>;
+				};
+			};
+
+			led0_pins: led0-pins {
+				led0_pin {
+					pinmux = <ALTSELECT(PIN_INDEX_PF(1), 0)>;
+				};
+			};
+			led1_pins: led1-pins {
+				led1_pin {
+					pinmux = <ALTSELECT(PIN_INDEX_PF(2), 0)>;
+				};
+			};
+			key0_pins: key0-pins {
+				key0_pin {
+					hpmicro,keeper-cap = <0>;
+					bias-pull-up;
+					input-schmitt-enable;
+					hpmicro,strong-pull-up;
+					pinmux = <ALTSELECT(PIN_INDEX_PF(7), 0)>;
+				};
+			};
+			key1_pins: key1-pins {
+				key1_pin {
+					hpmicro,keeper-cap = <0>;
+					bias-pull-up;
+					input-schmitt-enable;
+					hpmicro,strong-pull-up;
+					pinmux = <ALTSELECT(PIN_INDEX_PF(6), 0)>;
+				};
+			};
+		};
+
+		gpio0: gpio-controller@f00d0000 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			compatible = "hpmicro,gpio";
+			reg = <0xF00D0000 0x4000>;
+			n-ports = <6>;
+			status = "okay";
+			gpio_porta: gpio-porta@0 {
+				#gpio-cells = <2>;
+				#interrupt-cells = <2>;
+				compatible = "hpmicro,gpio-port";
+				reg = <0>;
+				interrupt-controller;
+				interrupts = <1>;
+				gpio-controller;
+				ngpios = <32>;
+				gpio-ranges = <&ioc 0 0 32>;
+			};
+			gpio_portb: gpio-portb@1 {
+				#gpio-cells = <2>;
+				#interrupt-cells = <2>;
+				compatible = "hpmicro,gpio-port";
+				reg = <1>;
+				interrupt-controller;
+				interrupts = <2>;
+				gpio-controller;
+				ngpios = <32>;
+				gpio-ranges = <&ioc 32 32 32>;
+			};
+			gpio_portc: gpio-portc@2 {
+				#gpio-cells = <2>;
+				#interrupt-cells = <2>;
+				compatible = "hpmicro,gpio-port";
+				reg = <2>;
+				interrupt-controller;
+				interrupts = <3>;
+				gpio-controller;
+				ngpios = <32>;
+				gpio-ranges = <&ioc 64 64 32>;
+			};
+			gpio_portd: gpio-portd@3 {
+				#gpio-cells = <2>;
+				#interrupt-cells = <2>;
+				compatible = "hpmicro,gpio-port";
+				reg = <3>;
+				interrupt-controller;
+				interrupts = <4>;
+				gpio-controller;
+				ngpios = <32>;
+				gpio-ranges = <&ioc 96 96 32>;
+			};
+			gpio_porte: gpio-porte@4 {
+				#gpio-cells = <2>;
+				#interrupt-cells = <2>;
+				compatible = "hpmicro,gpio-port";
+				reg = <4>;
+				interrupt-controller;
+				interrupts = <5>;
+				gpio-controller;
+				ngpios = <32>;
+				gpio-ranges = <&ioc 128 128 32>;
+			};
+			gpio_portf: gpio-portf@5 {
+				#gpio-cells = <2>;
+				#interrupt-cells = <2>;
+				compatible = "hpmicro,gpio-port";
+				reg = <5>;
+				interrupt-controller;
+				interrupts = <6>;
+				gpio-controller;
+				ngpios = <32>;
+				gpio-ranges = <&ioc 160 160 32>;
+			};
+		};
+	};
+};

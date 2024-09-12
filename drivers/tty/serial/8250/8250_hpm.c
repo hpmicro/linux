@@ -130,7 +130,7 @@ static void hpmicro_uart_remove(struct platform_device *pdev)
 }
 
 static const struct of_device_id of_match[] = {
-	{ .compatible = "hpmicro,hpm6360-uart", .data = NULL },
+	{ .compatible = "hpmicro,hpmicro-uart", .data = NULL },
 	{ /* sentinel */ }
 };
 MODULE_DEVICE_TABLE(of, of_match);
